@@ -10,36 +10,42 @@ app.config['DEBUG'] = True
 
 @app.route("/", methods = ['GET'])
 def index():
-    return render_template('Signup.html')
+    return render_template('signup.html')
 
-@app.route("/registration", methods=['POST'])
+@app.route("/", methods=['POST'])
 def check_input():
-    username=request.form['username']
-    if len(username) < 3 or len(username) > 20 or username.isalnum() == False:
-        return render_template('Signup.html',username = 'username must be between three and twenty characters(letters and numbers)')
-
+    username = request.form['username']
     password = request.form['password_create']
-    p1 = request.form['password_create']
-    p2 = request.form['password_verify']
-    if len(p1) <3 or len(p1) >20:
-        return render_template('Signup.html', password = 'password must be 3 to 20 charactors', k = username)
-    if p1 == p2:
-        template = jinja_env.get_template('confirmation.html')
-        return template.render(username = username)
+    verify_password = request.form['password_verify']
+    email = request.form['email']
+
+    username_error= ""
+    password_error= ""
+    verify_error= ""
+    email_error= ""
+
+    if len(username) < 3 or len(username) > 20 or username.isalnum() == False:
+        username_error = "Username must be between three and twenty alphanumeric characters."
+
+    if len(password) < 3 or len(password) > 20:
+        password_error = "Password must be between three and twenty alphanumeric characters."
+        password = ""
+
+    if verify_password == "" or verify_password != password:
+        verify_error = "Both passwords must be identical."
+        verify_password = ""
+
+    if email != "":
+        if "@" not in email or "." not in email:
+            email_error = "Email needs @ and a period."
+
+    if not username_error and not password_error and not verify_error and not email_error:
+        return render_template("confirmation.html", username = username)
+
     else:
-        return render_template('Signup.html', password = 'passwords must match', k = username)
-
-    email=request.form['email']
-    if len(email) < 3 or len(email) > 20:
-        return render_template('Signup.html',
-        email = 'Must be between 3 to 20 characters long, including the domain name', k = username, e = email)
-
-    at_dot = 0
-    for char in email:
-        if char =='@' or char == '.':
-            at_dot += 1
-    if at_dot !=2:
-        return render_template('Signup.html', email = 'Invalid Email.', k = username, e = email)
+        return render_template("signup.html", username_error = username_error, 
+            password_error = password_error, verify_error = verify_error, email_error = email_error, 
+            username = username, email = email)
 
 if __name__== '__main__':
     app.run()
